@@ -1,75 +1,177 @@
 "use client"
 import { Course } from "@/components/classes/courses/course";
+import CoursesByClassroom from "@/components/classes/coursesByClassroom.ts/CoursesByClassroom";
+import { DataCourse } from "@/components/classes/coursesByClassroom.ts/dataCourse";
+import moment, { Moment } from "moment";
 import { ChangeEvent, useState } from "react";
 
-export default function ViewCourses () {
-    const [courses,setCourses]=useState([] as Course[]);
-    const [possibleClassRoms,setPossibleClassrooms]=useState(0);
+export default function ViewCourses() {
+    const [courses, setCourses] = useState([] as Course[]);
+    const [possibleClassRoms, setPossibleClassrooms] = useState(0);
+    const festives = new Set<string>(["2025-10-20", "2025-08-25"]);
+    const [firstDayStart, setFirstDayStart] = useState("2025-9-15");
 
-    function addNewCourse () {
-        setCourses([...courses,new Course("",0,[])]);
+    const coursesByClassrooms: CoursesByClassroom[] = [];
+
+    function addNewCourse() {
+        setCourses([...courses, new Course("", 0, [])]);
         console.log(courses);
     }
 
-    function deleteCourse (id:number) {
-        const coursesWithoutDeleted=courses.filter((x,index)=>{
-            if (index!=id) return x;
+    function deleteCourse(id: number) {
+        const coursesWithoutDeleted = courses.filter((x, index) => {
+            if (index != id) return x;
         })
         setCourses([...coursesWithoutDeleted]);
     }
 
-    function updateCourse (e:ChangeEvent,id:number) {
-        const inputElem=e.target as HTMLInputElement;
-        let coursesCopy= [...courses];
+    function updateCourse(e: ChangeEvent, id: number) {
+        const inputElem = e.target as HTMLInputElement;
+        let coursesCopy = [...courses];
 
-        const courseFound=coursesCopy.find((x,index)=>{
-            if (index==id) return x; 
+        const courseFound = coursesCopy.find((x, index) => {
+            if (index == id) return x;
         })
 
         if (courseFound) {
-            if (inputElem.name=="possibleClassrooms") {
+            if (inputElem.name == "possibleClassrooms") {
                 if (inputElem.checked) {
                     //console.log(inputElem.value);
                     courseFound.possibleClassrooms.push(parseInt(inputElem.value));
                     //console.log(courseFound);
                 } else {
-                    courseFound.possibleClassrooms=courseFound.possibleClassrooms.filter(x=>{
-                        if (x!=parseInt(inputElem.value)) return x;
+                    courseFound.possibleClassrooms = courseFound.possibleClassrooms.filter(x => {
+                        if (x != parseInt(inputElem.value)) return x;
                     })
                     //console.log(courseFound)
                 }
-                
+
             } else {
-                (courseFound as any)[inputElem.name]=inputElem.value;
+                (courseFound as any)[inputElem.name] = inputElem.value;
             }
         }
-        
-        
+
+
         setCourses([...coursesCopy]);
     }
 
-    function onChangePossibleClassrooms (e:ChangeEvent) {
-        const inputElem= e.target as HTMLInputElement;
+    function onChangePossibleClassrooms(e: ChangeEvent) {
+        const inputElem = e.target as HTMLInputElement;
         setPossibleClassrooms(parseInt(inputElem.value));
     }
 
-    function goMakeCalendar () {
+    //2 times in a same classroom, Morning and Afternoon
+    //First check first courses with less possibleClassRooms
+    //1 Morning 1 Afternoon
+    function goMakeCalendar() {
+        //Create CoursesByClassrooms 
+        for (let i = 0; i < possibleClassRoms; i++) {
+            coursesByClassrooms.push(new CoursesByClassroom(i + 1));
+        }
 
+        let isMorning = false;
+        //Get Courses first by 1 Classroom, 2nd 2 Classrooms and keep going
+        for (let i = 0; i < possibleClassRoms; i++) {
+            const coursesFiltered = courses.filter(x => x.possibleClassrooms.length == i + 1)
+
+            if (coursesFiltered.length > 0) {
+
+                //For each Course, assign days
+                coursesFiltered.forEach(x => {
+                    //Set for each course 1 time morning 1 time afternoon
+                    if (isMorning) isMorning = false;
+                    else isMorning = true;
+
+
+                    const daysLengthThisCourse = x.daysLength;
+                    //let daysCount=0; No lo vamos a necesitar
+
+                    //If is morning
+                    if (isMorning) {
+                        //Let Classroom with less Days used
+                        const classroomNumberToUse = coursesByClassrooms.reduce((numberReduced: number, x) => {
+                            if (x.dataMorning.length > numberReduced) return numberReduced;
+                            else return 0;
+                        }, 0)
+
+                        //Assign ActualCourseThisClassRoom
+                        let actualCoursesthisClassroom = coursesByClassrooms.find(x => x.classroom == classroomNumberToUse) as CoursesByClassroom;
+
+                        //Set First Day To Start in Moment Date
+                        let actualDate: Moment
+                        if (actualCoursesthisClassroom.dataMorning.length > 0) {
+                            actualDate = moment(actualCoursesthisClassroom.dataMorning[actualCoursesthisClassroom.dataMorning.length - 1].date);
+                        } else {
+                            actualDate = moment(firstDayStart);
+                        }
+
+                        //For Each Day, puts new Date
+                        for (let z = 0; z < daysLengthThisCourse; z++) {
+                            let dayAdded = false;
+
+                            while (!dayAdded) {
+                                actualDate.add(1, "days");
+                                if (actualDate.format("d") == "sat" || actualDate.format("d") == "sun" || festives.has(actualDate.format("Y-MM-DD"))) console.log("Dia Festivo o Fin de semana");
+                                else {
+                                    actualCoursesthisClassroom.dataMorning.push(new DataCourse(x, actualDate.format("Y-DD-MM")))
+                                    dayAdded = true;
+                                }
+                            }
+                        }
+
+                        //If is Afternoon
+                    } else {
+                        //Let Classroom with less Days used
+                        const classroomNumberToUse = coursesByClassrooms.reduce((numberReduced: number, x) => {
+                            if (x.dataAfternoon.length > numberReduced) return numberReduced;
+                            else return 0;
+                        }, 0)
+
+                        //Assign ActualCourseThisClassRoom
+                        let actualCoursesthisClassroom = coursesByClassrooms.find(x => x.classroom == classroomNumberToUse) as CoursesByClassroom;
+
+                        //Set First Day To Start in Moment Date
+                        let actualDate: Moment
+                        if (actualCoursesthisClassroom.dataAfternoon.length > 0) {
+                            actualDate = moment(actualCoursesthisClassroom.dataAfternoon[actualCoursesthisClassroom.dataMorning.length - 1].date);
+                        } else {
+                            actualDate = moment(firstDayStart);
+                        }
+
+                        //For Each Day, puts new Date
+                        for (let z = 0; z < daysLengthThisCourse; z++) {
+                            let dayAdded = false;
+
+                            while (!dayAdded) {
+                                actualDate.add(1, "days");
+                                if (actualDate.format("d") == "sat" || actualDate.format("d") == "sun" || festives.has(actualDate.format("Y-MM-DD"))) console.log("Dia Festivo o Fin de semana");
+                                else {
+                                    actualCoursesthisClassroom.dataAfternoon.push(new DataCourse(x, actualDate.format("Y-DD-MM")))
+                                    dayAdded = true;
+                                }
+                            }
+                        }
+                    }
+
+
+                })
+            }
+        }
     }
 
-    const coursesMap= courses.map((x,index)=>{
-        const possibleClassRoomsMap=[];
+    const coursesMap = courses.map((x, index) => {
+        const possibleClassRoomsMap = [];
         for (let i = 1; i <= possibleClassRoms; i++) {
-            possibleClassRoomsMap[i]=<div><label>{i}</label><input type="checkbox" onChange={(e)=>updateCourse(e,index)} name={`possibleClassrooms`} value={i} /></div>
-            
+            possibleClassRoomsMap[i] = <div><label>{i}</label><input type="checkbox" checked={x.possibleClassrooms.find(x => i == x) ? true : false} onChange={(e) => updateCourse(e, index)} name={`possibleClassrooms`} value={i} /></div>
+
         }
         return (
-            <div>
-                <input type="text" value={x.name} onChange={(e:ChangeEvent)=>{updateCourse(e,index)}} name="name" placeholder="Name" required />
-                <input type="number" value={x.daysLength} onChange={(e:ChangeEvent)=>{updateCourse(e,index)}} name="daysLength" placeholder="Days Length" required />
+            <div key={index}>
+                <input type="text" value={x.name} onChange={(e: ChangeEvent) => { updateCourse(e, index) }} name="name" placeholder="Name" required />
+                <input type="number" value={x.daysLength} onChange={(e: ChangeEvent) => { updateCourse(e, index) }} name="daysLength" placeholder="Days Length" required />
                 {/*<input type="text" name="possibleClassrooms" onChange={(e:ChangeEvent)=>{updateCourse(e,index)}} placeholder="possibleClassRoms" required />*/}
                 {possibleClassRoomsMap}
-                <button onClick={()=>{deleteCourse(index)}}>Delete</button>
+                <button onClick={() => { deleteCourse(index) }}>Delete</button>
             </div>
         );
     })

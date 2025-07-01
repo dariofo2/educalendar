@@ -5,7 +5,7 @@ import ViewCourses from "@/components/courses/view/viewCourses";
 
 export default async function Home() {
   return (
-    <div className={styles.page}>
+    <div>
       <ViewCourses />
     </div>
   );
