@@ -4,6 +4,8 @@ import CoursesByClassroom from "@/components/classes/coursesByClassroom.ts/Cours
 import { DataCourse } from "@/components/classes/coursesByClassroom.ts/dataCourse";
 import moment, { Moment } from "moment";
 import { ChangeEvent, useState } from "react";
+import CoursesCalendar from "../calendar/coursesCalendar";
+import { FullCalendarEvent } from "@/components/classes/fullCalendar/event";
 
 export default function ViewCourses() {
     const [courses, setCourses] = useState([] as Course[]);
@@ -11,10 +13,11 @@ export default function ViewCourses() {
     const festives = new Set<string>(["2025-10-20", "2025-08-25"]);
     const [firstDayStart, setFirstDayStart] = useState("2025-9-15");
 
+    const [eventsData,setEventsData]=useState(null as FullCalendarEvent[]|null);
     let coursesByClassrooms: CoursesByClassroom[] = [];
 
     function addNewCourse() {
-        setCourses([...courses, new Course("", 0, [])]);
+        setCourses([...courses, new Course("", 0, [],"#000000")]);
         console.log(courses);
     }
 
@@ -70,7 +73,7 @@ export default function ViewCourses() {
             coursesByClassrooms.push(new CoursesByClassroom(i + 1));
         }
 
-
+        const eventsDataToAdd: FullCalendarEvent[]=[]
         //Get Courses first by 1 Classroom, 2nd 2 Classrooms and keep going
         for (let i = 0; i < possibleClassRoms; i++) {
             const coursesFiltered = courses.filter(x => x.possibleClassrooms.length == i + 1)
@@ -156,6 +159,12 @@ export default function ViewCourses() {
                             if (actualDate.format("dd") == "Sa" || actualDate.format("dd") == "Su" || festives.has(actualDate.format("Y-MM-DD"))) console.log("Dia Festivo o Fin de semana");
                             else {
                                 actualCoursesthisClassroom.dataMorning.push(new DataCourse(x, actualDate.format("Y-MM-DD")))
+                                eventsDataToAdd?.push({
+                                    title: `${actualCoursesthisClassroom.classroom} ${x.name}`,
+                                    color: x.color,
+                                    start: actualDate.format("Y-MM-DD"),
+                                    classroom: actualCoursesthisClassroom.classroom
+                                })
                                 dayAdded = true;
                             }
                         }
@@ -203,7 +212,15 @@ export default function ViewCourses() {
                             actualDate.add(1, "days");
                             if (actualDate.format("d") == "sat" || actualDate.format("d") == "sun" || festives.has(actualDate.format("Y-MM-DD"))) console.log("Dia Festivo o Fin de semana");
                             else {
-                                actualCoursesthisClassroom.dataAfternoon.push(new DataCourse(x, actualDate.format("Y-MM-DD")))
+                                actualCoursesthisClassroom.dataAfternoon.push(new DataCourse(x, actualDate.format("Y-MM-DD")));
+
+                                eventsDataToAdd.push({
+                                    title: `${actualCoursesthisClassroom.classroom} ${x.name}`,
+                                    color: x.color,
+                                    start: actualDate.format("Y-MM-DD"),
+                                    classroom: actualCoursesthisClassroom.classroom
+                                });
+                                
                                 dayAdded = true;
                             }
                         }
@@ -216,6 +233,8 @@ export default function ViewCourses() {
     }
 
     console.log(coursesByClassrooms);
+    setEventsData([...eventsDataToAdd]);
+    //setCoursesByClassRoomsState({...coursesByClassrooms});
 }
 
 const coursesMap = courses.map((x, index) => {
@@ -228,6 +247,7 @@ const coursesMap = courses.map((x, index) => {
         <div key={index}>
             <input type="text" value={x.name} onChange={(e: ChangeEvent) => { updateCourse(e, index) }} name="name" placeholder="Name" required />
             <input type="number" value={x.daysLength} onChange={(e: ChangeEvent) => { updateCourse(e, index) }} name="daysLength" placeholder="Days Length" required />
+            <input type="color" value={x.color} onChange={(e: ChangeEvent) => { updateCourse(e, index) }} name="color" placeholder="Color" required />
             {/*<input type="text" name="possibleClassrooms" onChange={(e:ChangeEvent)=>{updateCourse(e,index)}} placeholder="possibleClassRoms" required />*/}
             {possibleClassRoomsMap}
             <button onClick={() => { deleteCourse(index) }}>Delete</button>
@@ -248,6 +268,7 @@ return (
                 <button onClick={goMakeCalendar}>Make Calendar</button>
             </div>
         </div>
+        <CoursesCalendar courses={courses} data={eventsData as FullCalendarEvent[]} />
     </div>
 );
 }
