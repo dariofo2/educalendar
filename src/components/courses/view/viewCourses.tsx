@@ -158,11 +158,11 @@ export default function ViewCourses() {
                             actualDate.add(1, "days");
                             if (actualDate.format("dd") == "Sa" || actualDate.format("dd") == "Su" || festives.has(actualDate.format("Y-MM-DD"))) console.log("Dia Festivo o Fin de semana");
                             else {
-                                actualCoursesthisClassroom.dataMorning.push(new DataCourse(x, actualDate.format("Y-MM-DD")))
+                                actualCoursesthisClassroom.dataMorning.push(new DataCourse(x, actualDate.format("Y-MM-DDT09:00:00")))
                                 eventsDataToAdd?.push({
                                     title: `${actualCoursesthisClassroom.classroom} ${x.name}`,
                                     color: x.color,
-                                    start: actualDate.format("Y-MM-DD"),
+                                    start: actualDate.format("Y-MM-DDT09:00:00"),
                                     classroom: actualCoursesthisClassroom.classroom
                                 })
                                 dayAdded = true;
@@ -210,14 +210,14 @@ export default function ViewCourses() {
 
                         while (!dayAdded) {
                             actualDate.add(1, "days");
-                            if (actualDate.format("d") == "sat" || actualDate.format("d") == "sun" || festives.has(actualDate.format("Y-MM-DD"))) console.log("Dia Festivo o Fin de semana");
+                            if (actualDate.format("dd") == "Sa" || actualDate.format("dd") == "Su" || festives.has(actualDate.format("Y-MM-DD"))) console.log("Dia Festivo o Fin de semana");
                             else {
-                                actualCoursesthisClassroom.dataAfternoon.push(new DataCourse(x, actualDate.format("Y-MM-DD")));
+                                actualCoursesthisClassroom.dataAfternoon.push(new DataCourse(x, actualDate.format("Y-MM-DDT09:00:00")));
 
                                 eventsDataToAdd.push({
                                     title: `${actualCoursesthisClassroom.classroom} ${x.name}`,
                                     color: x.color,
-                                    start: actualDate.format("Y-MM-DD"),
+                                    start: actualDate.format("Y-MM-DDT15:00:00"),
                                     classroom: actualCoursesthisClassroom.classroom
                                 });
                                 
@@ -268,7 +268,7 @@ return (
                 <button onClick={goMakeCalendar}>Make Calendar</button>
             </div>
         </div>
-        <CoursesCalendar courses={courses} data={eventsData as FullCalendarEvent[]} />
+        <CoursesCalendar courses={courses} data={eventsData as FullCalendarEvent[]} initialDate={moment(firstDayStart).format("Y-MM-01")} />
     </div>
 );
 }
