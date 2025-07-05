@@ -63,6 +63,25 @@ export default function ViewCourses() {
         setPossibleClassrooms(parseInt(inputElem.value));
     }
 
+    function shuffleCoursesAndMakeCalendar () {
+        const shuffled=shuffleArray(courses as []);
+        setCourses([...shuffled]);
+
+        setTimeout(() => {
+            goMakeCalendar();    
+        }, 100);
+    }
+
+    function shuffleArray (array:[]) {
+        for (const key in array) {
+            const cache=array[key];
+            const randomIndex=Math.floor(Math.random()*array.length);
+
+            array[key]=array[randomIndex];
+            array[randomIndex]=cache;
+        }
+        return array;
+    }
     //2 times in a same classroom, Morning and Afternoon
     //First check first courses with less possibleClassRooms
     //1 Morning 1 Afternoon
@@ -88,56 +107,42 @@ export default function ViewCourses() {
                     else isMorning = true;
 
                     //Check Class and if is Morning or Afternoon
-                    let dataMorningOrAfternoonMax: number | undefined = undefined;
+                    let dataMorningOrAfternoonMax: number | null = null;
+                    let classroomNumberToUse = 0;
                     //Check Class and if is Morning or Afternoon
-                    const classroomNumberToUse = coursesByClassrooms.reduce((numberReduced: number, h) => {
-                        let dataMaxInThisClassroom = dataMorningOrAfternoonMax;
+                    coursesByClassrooms.forEach((h) => {
+                        let foundClassRoom=false;
+                        console.log(dataMorningOrAfternoonMax);
+                        //console.log(h.dataMorning.length)
                         if (x.possibleClassrooms.find(o => h.classroom == o)) {
-                            if (!dataMorningOrAfternoonMax) {
+                            if (dataMorningOrAfternoonMax==null) {
                                 dataMorningOrAfternoonMax = h.dataMorning.length;
+                                console.log("FIRSTT")
                                 isMorning = true;
+                                foundClassRoom=true;
                             }
                             if (h.dataMorning.length < dataMorningOrAfternoonMax) {
                                 dataMorningOrAfternoonMax = h.dataMorning.length;
                                 isMorning = true;
+                                foundClassRoom=true;
                             }
                             if (h.dataAfternoon.length < dataMorningOrAfternoonMax) {
                                 dataMorningOrAfternoonMax = h.dataAfternoon.length;
                                 isMorning = false;
+                                foundClassRoom=true;
                             }
-                            return h.classroom;
+                            if (foundClassRoom) classroomNumberToUse = h.classroom;
                         } else {
-                            return numberReduced;
+                            
                         }
-                    }, 0);
+                    });
 
                 const daysLengthThisCourse = x.daysLength;
                 //let daysCount=0; No lo vamos a necesitar
 
                 //If is morning
                 if (isMorning) {
-                    /*
-                    //Let Classroom with less Days used
-                    let dataMorningMax: number | undefined = undefined;
-                    //Let Classroom with less Days used
-                    const classroomNumberToUse = coursesByClassrooms.reduce((numberReduced: number, h) => {
-                        if (x.possibleClassrooms.find(o => h.classroom == o)) {
-                            if (!dataMorningMax) {
-                                dataMorningMax = h.dataMorning.length;
-                                return h.classroom
-                            } else {
-                                if (h.dataMorning.length < dataMorningMax) {
-                                    dataMorningMax = h.dataMorning.length;
-                                    return h.classroom;
-                                }
-
-                                return numberReduced;
-                            }
-                        } else {
-                            return numberReduced;
-                        }
-                    }, 0)
-                    */
+                    
                     console.log(classroomNumberToUse);
                     //Assign ActualCourseThisClassRoom
                     let actualCoursesthisClassroom = coursesByClassrooms.find(y => y.classroom == classroomNumberToUse) as CoursesByClassroom;
@@ -172,27 +177,6 @@ export default function ViewCourses() {
 
                     //If is Afternoon
                 } else {
-                    /*
-                    let dataAfternoonMax: number | undefined = undefined;
-                    //Let Classroom with less Days used
-                    const classroomNumberToUse = coursesByClassrooms.reduce((numberReduced: number, h) => {
-                        if (x.possibleClassrooms.find(o => h.classroom == o)) {
-                            if (!dataAfternoonMax) {
-                                dataAfternoonMax = h.dataAfternoon.length;
-                                return h.classroom
-                            } else {
-                                if (h.dataAfternoon.length < dataAfternoonMax) {
-                                    dataAfternoonMax = h.dataAfternoon.length;
-                                    return h.classroom;
-                                }
-
-                                return numberReduced;
-                            }
-                        } else {
-                            return numberReduced;
-                        }
-                    }, 0)
-                    */
                     //Assign ActualCourseThisClassRoom
                     let actualCoursesthisClassroom = coursesByClassrooms.find(x => x.classroom == classroomNumberToUse) as CoursesByClassroom;
 
@@ -257,6 +241,7 @@ const coursesMap = courses.map((x, index) => {
 return (
     <div>
         <div>
+            <h1 className="text-center">Edu Calendar APP</h1>
             <h2>Courses To Add</h2>
             <div>
                 {coursesMap}
@@ -265,7 +250,8 @@ return (
             <div>
                 <h3>Number of Classrooms</h3>
                 <input type="number" onChange={onChangePossibleClassrooms} required></input>
-                <button onClick={goMakeCalendar}>Make Calendar</button>
+                <button onClick={goMakeCalendar} disabled={possibleClassRoms<=0 ? true : false} >Make Calendar</button>
+                <button onClick={shuffleCoursesAndMakeCalendar} disabled={possibleClassRoms<=0 ? true : false} >Try Random Combination</button>
             </div>
         </div>
         <CoursesCalendar courses={courses} data={eventsData as FullCalendarEvent[]} initialDate={moment(firstDayStart).format("Y-MM-01")} />

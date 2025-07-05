@@ -63,8 +63,19 @@ export default function CoursesCalendar(props: Props) {
         
     }
 
+    const leyendCourses=props.courses.map(x=>{
+        return (
+            <div className="d-flex me-3">
+                {x.name}
+                <div style={{width:50, height:25, backgroundColor:x.color}}></div>
+            </div>
+        );
+    })
     return (
         <div id="calendarDiv">
+            <div className="d-flex">
+                {leyendCourses}
+            </div>
             <FullCalendar ref={calendarRef}
                 plugins={[DayGridPlugin]}
                 multiMonthMaxColumns={1}
