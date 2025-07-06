@@ -21,7 +21,7 @@ export default function CoursesCalendar(props: Props) {
         //calendarRef.current?.getApi().nextYear();
         console.log(props.initialDate)
         calendarRef.current?.getApi().gotoDate(props.initialDate);
-        
+
         downloadPDF();
     }
 
@@ -35,57 +35,85 @@ export default function CoursesCalendar(props: Props) {
         //const imgElem=new Image();
         //imgElem.src=img;
         //imgElem.onload=async ()=>{
-            const jspdf = new jsPDF({
-            orientation:"l",
-            unit:"px"
+        const jspdf = new jsPDF({
+            orientation: "l",
+            unit: "px"
         });
-        
-        
+
+
         for (let i = 0; i < 13; i++) {
             const canvas = await html2canvas(document.getElementById("calendarDiv") as HTMLElement);
-            const img=canvas.toDataURL("image/png");
-            const canvasHeight=canvas.height;
-            
+            const img = canvas.toDataURL("image/png");
+            const canvasHeight = canvas.height;
+
             const imgProps = jspdf.getImageProperties(img);
             const pdfWidth = jspdf.internal.pageSize.getWidth();
             const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
             jspdf.addImage(img, "PNG", 0, 0, pdfWidth, pdfHeight);
-            if (i!=13-1) {
+            if (i != 13 - 1) {
                 jspdf.addPage();
             }
-            
+
             calendarRef.current?.getApi().next();
-            
+
         }
-        
+
+        const canvas = await html2canvas(document.getElementById("coursesInfoFinal") as HTMLElement);
+            jspdf.addPage();
+            const img = canvas.toDataURL("image/png");
+            const canvasHeight = canvas.height;
+
+            const imgProps = jspdf.getImageProperties(img);
+            const pdfWidth = jspdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            jspdf.addImage(img, "PNG", 0, 0, pdfWidth, pdfHeight);
+
         jspdf.save();
-        
+
     }
 
-    const leyendCourses=props.courses.map(x=>{
+    const leyendCourses = props.courses.map(x => {
         return (
             <div className="d-flex me-3">
                 {x.name}
-                <div style={{width:50, height:25, backgroundColor:x.color}}></div>
+                <div style={{ width: 50, height: 25, backgroundColor: x.color }}></div>
+            </div>
+        );
+    });
+
+    const coursesInfoFinal = props.courses.map(x=>{
+        return (
+            <div>
+                <h6>Name: {x.name}</h6>
+                <h6>Classroom: {x.classRoomUsed}</h6>
+                <h6>Dates: {x.dateStart} - {x.dateEnd}</h6>
             </div>
         );
     })
     return (
-        <div id="calendarDiv">
-            <div className="d-flex">
-                {leyendCourses}
-            </div>
-            <FullCalendar ref={calendarRef}
-                plugins={[DayGridPlugin]}
-                multiMonthMaxColumns={1}
-                height= "auto"
-                contentHeight={"auto"}
-                eventMaxStack={10}
-                events={props.data}
+        <div>
+            <div id="calendarDiv">
+                <div className="d-flex">
+                    {leyendCourses}
+                </div>
+                <FullCalendar ref={calendarRef}
+                    plugins={[DayGridPlugin]}
+                    multiMonthMaxColumns={1}
+                    height="auto"
+                    contentHeight={"auto"}
+                    eventMaxStack={10}
+                    events={props.data}
 
-            />
-            <button onClick={nextYear}>hola</button>
+                />
+
+            </div>
+            <button className="btn btn-success" onClick={nextYear}>Save Calendar To PDF</button>
+            <div id="coursesInfoFinal">
+                <h4>Courses Info Final</h4>
+                {coursesInfoFinal}
+            </div>
         </div>
     );
 }

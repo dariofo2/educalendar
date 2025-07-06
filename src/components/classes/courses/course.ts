@@ -3,6 +3,9 @@ export class Course {
     daysLength: number;
     possibleClassrooms: number[];
     color: string;
+    dateStart?: string;
+    dateEnd?: string;
+    classRoomUsed?: number;
 
     constructor (name:string,daysLength:number,possibleClassrooms:number[],color:string) {
         this.name=name;

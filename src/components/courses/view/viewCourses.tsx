@@ -13,11 +13,11 @@ export default function ViewCourses() {
     const festives = new Set<string>(["2025-10-20", "2025-08-25"]);
     const [firstDayStart, setFirstDayStart] = useState("2025-9-15");
 
-    const [eventsData,setEventsData]=useState(null as FullCalendarEvent[]|null);
+    const [eventsData, setEventsData] = useState(null as FullCalendarEvent[] | null);
     let coursesByClassrooms: CoursesByClassroom[] = [];
 
     function addNewCourse() {
-        setCourses([...courses, new Course("", 0, [],"#000000")]);
+        setCourses([...courses, new Course("", 0, [], "#000000")]);
         console.log(courses);
     }
 
@@ -63,22 +63,22 @@ export default function ViewCourses() {
         setPossibleClassrooms(parseInt(inputElem.value));
     }
 
-    function shuffleCoursesAndMakeCalendar () {
-        const shuffled=shuffleArray(courses as []);
+    function shuffleCoursesAndMakeCalendar() {
+        const shuffled = shuffleArray(courses as []);
         setCourses([...shuffled]);
 
         setTimeout(() => {
-            goMakeCalendar();    
+            goMakeCalendar();
         }, 100);
     }
 
-    function shuffleArray (array:[]) {
+    function shuffleArray(array: []) {
         for (const key in array) {
-            const cache=array[key];
-            const randomIndex=Math.floor(Math.random()*array.length);
+            const cache = array[key];
+            const randomIndex = Math.floor(Math.random() * array.length);
 
-            array[key]=array[randomIndex];
-            array[randomIndex]=cache;
+            array[key] = array[randomIndex];
+            array[randomIndex] = cache;
         }
         return array;
     }
@@ -87,12 +87,12 @@ export default function ViewCourses() {
     //1 Morning 1 Afternoon
     function goMakeCalendar() {
         //Create CoursesByClassrooms 
-        coursesByClassrooms=[];
+        coursesByClassrooms = [];
         for (let i = 0; i < possibleClassRoms; i++) {
             coursesByClassrooms.push(new CoursesByClassroom(i + 1));
         }
 
-        const eventsDataToAdd: FullCalendarEvent[]=[]
+        const eventsDataToAdd: FullCalendarEvent[] = []
         //Get Courses first by 1 Classroom, 2nd 2 Classrooms and keep going
         for (let i = 0; i < possibleClassRoms; i++) {
             const coursesFiltered = courses.filter(x => x.possibleClassrooms.length == i + 1)
@@ -111,150 +111,179 @@ export default function ViewCourses() {
                     let classroomNumberToUse = 0;
                     //Check Class and if is Morning or Afternoon
                     coursesByClassrooms.forEach((h) => {
-                        let foundClassRoom=false;
+                        let foundClassRoom = false;
                         console.log(dataMorningOrAfternoonMax);
                         //console.log(h.dataMorning.length)
                         if (x.possibleClassrooms.find(o => h.classroom == o)) {
-                            if (dataMorningOrAfternoonMax==null) {
+                            if (dataMorningOrAfternoonMax == null) {
                                 dataMorningOrAfternoonMax = h.dataMorning.length;
                                 console.log("FIRSTT")
                                 isMorning = true;
-                                foundClassRoom=true;
+                                foundClassRoom = true;
                             }
                             if (h.dataMorning.length < dataMorningOrAfternoonMax) {
                                 dataMorningOrAfternoonMax = h.dataMorning.length;
                                 isMorning = true;
-                                foundClassRoom=true;
+                                foundClassRoom = true;
                             }
                             if (h.dataAfternoon.length < dataMorningOrAfternoonMax) {
                                 dataMorningOrAfternoonMax = h.dataAfternoon.length;
                                 isMorning = false;
-                                foundClassRoom=true;
+                                foundClassRoom = true;
                             }
                             if (foundClassRoom) classroomNumberToUse = h.classroom;
                         } else {
-                            
+
                         }
                     });
 
-                const daysLengthThisCourse = x.daysLength;
-                //let daysCount=0; No lo vamos a necesitar
-
-                //If is morning
-                if (isMorning) {
+                    x.classRoomUsed=classroomNumberToUse;
                     
-                    console.log(classroomNumberToUse);
-                    //Assign ActualCourseThisClassRoom
-                    let actualCoursesthisClassroom = coursesByClassrooms.find(y => y.classroom == classroomNumberToUse) as CoursesByClassroom;
+                    const daysLengthThisCourse = x.daysLength;
+                    //let daysCount=0; No lo vamos a necesitar
 
-                    //Set First Day To Start in Moment Date
-                    let actualDate: Moment
-                    if (actualCoursesthisClassroom.dataMorning.length > 0) {
-                        actualDate = moment(actualCoursesthisClassroom.dataMorning[actualCoursesthisClassroom.dataMorning.length - 1].date);
-                    } else {
-                        actualDate = moment(firstDayStart);
-                    }
+                    //If is morning
+                    if (isMorning) {
 
-                    //For Each Day, puts new Date
-                    for (let z = 0; z < daysLengthThisCourse; z++) {
-                        let dayAdded = false;
+                        console.log(classroomNumberToUse);
+                        //Assign ActualCourseThisClassRoom
+                        let actualCoursesthisClassroom = coursesByClassrooms.find(y => y.classroom == classroomNumberToUse) as CoursesByClassroom;
 
-                        while (!dayAdded) {
-                            actualDate.add(1, "days");
-                            if (actualDate.format("dd") == "Sa" || actualDate.format("dd") == "Su" || festives.has(actualDate.format("Y-MM-DD"))) console.log("Dia Festivo o Fin de semana");
-                            else {
-                                actualCoursesthisClassroom.dataMorning.push(new DataCourse(x, actualDate.format("Y-MM-DDT09:00:00")))
-                                eventsDataToAdd?.push({
-                                    title: `${actualCoursesthisClassroom.classroom} ${x.name}`,
-                                    color: x.color,
-                                    start: actualDate.format("Y-MM-DDT09:00:00"),
-                                    classroom: actualCoursesthisClassroom.classroom
-                                })
-                                dayAdded = true;
+                        //Set First Day To Start in Moment Date
+                        let actualDate: Moment
+                        if (actualCoursesthisClassroom.dataMorning.length > 0) {
+                            actualDate = moment(actualCoursesthisClassroom.dataMorning[actualCoursesthisClassroom.dataMorning.length - 1].date);
+                        } else {
+                            actualDate = moment(firstDayStart);
+                        }
+
+                        x.dateStart=actualDate.format("Y-MM-DD");
+                        //For Each Day, puts new Date
+                        for (let z = 0; z < daysLengthThisCourse; z++) {
+                            let dayAdded = false;
+
+                            while (!dayAdded) {
+                                actualDate.add(1, "days");
+                                if (actualDate.format("dd") == "Sa" || actualDate.format("dd") == "Su" || festives.has(actualDate.format("Y-MM-DD"))) console.log("Dia Festivo o Fin de semana");
+                                else {
+                                    actualCoursesthisClassroom.dataMorning.push(new DataCourse(x, actualDate.format("Y-MM-DDT09:00:00")))
+                                    eventsDataToAdd?.push({
+                                        title: `${actualCoursesthisClassroom.classroom} ${x.name}`,
+                                        color: x.color,
+                                        start: actualDate.format("Y-MM-DDT09:00:00"),
+                                        classroom: actualCoursesthisClassroom.classroom
+                                    })
+                                    dayAdded = true;
+                                }
                             }
+                            x.dateEnd=actualDate.format("Y-MM-DD");
+                        }
+
+                        //If is Afternoon
+                    } else {
+                        //Assign ActualCourseThisClassRoom
+                        let actualCoursesthisClassroom = coursesByClassrooms.find(x => x.classroom == classroomNumberToUse) as CoursesByClassroom;
+
+                        //Set First Day To Start in Moment Date
+                        let actualDate: Moment
+                        if (actualCoursesthisClassroom.dataAfternoon.length > 0) {
+                            actualDate = moment(actualCoursesthisClassroom.dataAfternoon[actualCoursesthisClassroom.dataAfternoon.length - 1].date);
+                        } else {
+                            actualDate = moment(firstDayStart);
+                        }
+                        x.dateStart=actualDate.format("Y-MM-DD");
+                        
+                        //For Each Day, puts new Date
+                        for (let z = 0; z < daysLengthThisCourse; z++) {
+                            let dayAdded = false;
+
+                            while (!dayAdded) {
+                                actualDate.add(1, "days");
+                                if (actualDate.format("dd") == "Sa" || actualDate.format("dd") == "Su" || festives.has(actualDate.format("Y-MM-DD"))) console.log("Dia Festivo o Fin de semana");
+                                else {
+                                    actualCoursesthisClassroom.dataAfternoon.push(new DataCourse(x, actualDate.format("Y-MM-DDT09:00:00")));
+
+                                    eventsDataToAdd.push({
+                                        title: `${actualCoursesthisClassroom.classroom} ${x.name}`,
+                                        color: x.color,
+                                        start: actualDate.format("Y-MM-DDT15:00:00"),
+                                        classroom: actualCoursesthisClassroom.classroom
+                                    });
+
+                                    dayAdded = true;
+                                }
+                            }
+
+                            x.dateEnd=actualDate.format("Y-MM-DD");
                         }
                     }
 
-                    //If is Afternoon
-                } else {
-                    //Assign ActualCourseThisClassRoom
-                    let actualCoursesthisClassroom = coursesByClassrooms.find(x => x.classroom == classroomNumberToUse) as CoursesByClassroom;
 
-                    //Set First Day To Start in Moment Date
-                    let actualDate: Moment
-                    if (actualCoursesthisClassroom.dataAfternoon.length > 0) {
-                        actualDate = moment(actualCoursesthisClassroom.dataAfternoon[actualCoursesthisClassroom.dataAfternoon.length - 1].date);
-                    } else {
-                        actualDate = moment(firstDayStart);
-                    }
-
-                    //For Each Day, puts new Date
-                    for (let z = 0; z < daysLengthThisCourse; z++) {
-                        let dayAdded = false;
-
-                        while (!dayAdded) {
-                            actualDate.add(1, "days");
-                            if (actualDate.format("dd") == "Sa" || actualDate.format("dd") == "Su" || festives.has(actualDate.format("Y-MM-DD"))) console.log("Dia Festivo o Fin de semana");
-                            else {
-                                actualCoursesthisClassroom.dataAfternoon.push(new DataCourse(x, actualDate.format("Y-MM-DDT09:00:00")));
-
-                                eventsDataToAdd.push({
-                                    title: `${actualCoursesthisClassroom.classroom} ${x.name}`,
-                                    color: x.color,
-                                    start: actualDate.format("Y-MM-DDT15:00:00"),
-                                    classroom: actualCoursesthisClassroom.classroom
-                                });
-                                
-                                dayAdded = true;
-                            }
-                        }
-                    }
-                }
-
-
-            })
+                })
+            }
         }
+
+        console.log(coursesByClassrooms);
+        setEventsData([...eventsDataToAdd]);
+        //setCoursesByClassRoomsState({...coursesByClassrooms});
     }
 
-    console.log(coursesByClassrooms);
-    setEventsData([...eventsDataToAdd]);
-    //setCoursesByClassRoomsState({...coursesByClassrooms});
-}
+    const coursesMap = courses.map((x, index) => {
+        const possibleClassRoomsMap = [];
+        for (let i = 1; i <= possibleClassRoms; i++) {
+            possibleClassRoomsMap[i] = <div className="form-check ms-3 me-3"><label className="form-check-label">{i}</label><input className="form-check-input" type="checkbox" checked={x.possibleClassrooms.find(x => i == x) ? true : false} onChange={(e) => updateCourse(e, index)} name={`possibleClassrooms`} value={i} /></div>
 
-const coursesMap = courses.map((x, index) => {
-    const possibleClassRoomsMap = [];
-    for (let i = 1; i <= possibleClassRoms; i++) {
-        possibleClassRoomsMap[i] = <div><label>{i}</label><input type="checkbox" checked={x.possibleClassrooms.find(x => i == x) ? true : false} onChange={(e) => updateCourse(e, index)} name={`possibleClassrooms`} value={i} /></div>
-
-    }
+        }
+        return (
+            <div className="container" key={index}>
+                <div className="row align-items-center justify-content-center">
+                    <div className="col-5">
+                        <div className="form-floating">
+                            <input className="form-control" type="text" value={x.name} onChange={(e: ChangeEvent) => { updateCourse(e, index) }} name="name" placeholder="Name" required />
+                            <label className="form-label">Name</label>
+                        </div>
+                    </div>
+                    <div className="col-2">
+                        <div className="form-floating">
+                            <input className="form-control" type="number" value={x.daysLength} onChange={(e: ChangeEvent) => { updateCourse(e, index) }} name="daysLength" placeholder="Days Length" required />
+                            <label className="form-label">Days Length</label>
+                        </div>
+                    </div>
+                    <div className="col-1">
+                        <input className="form-control-color w-100" type="color" value={x.color} onChange={(e: ChangeEvent) => { updateCourse(e, index) }} name="color" placeholder="Color" required />
+                    </div>
+                    <div className="col-2">
+                        <button className="btn btn-danger w-100" onClick={() => { deleteCourse(index) }}>Delete</button>
+                    </div>
+                </div>
+                <div className="d-flex justify-content-center mt-3">
+                    <h6>Possible Classrooms: </h6>
+                    {possibleClassRoomsMap}
+                </div>
+                
+                <hr />
+            </div>
+        );
+    })
     return (
-        <div key={index}>
-            <input type="text" value={x.name} onChange={(e: ChangeEvent) => { updateCourse(e, index) }} name="name" placeholder="Name" required />
-            <input type="number" value={x.daysLength} onChange={(e: ChangeEvent) => { updateCourse(e, index) }} name="daysLength" placeholder="Days Length" required />
-            <input type="color" value={x.color} onChange={(e: ChangeEvent) => { updateCourse(e, index) }} name="color" placeholder="Color" required />
-            {/*<input type="text" name="possibleClassrooms" onChange={(e:ChangeEvent)=>{updateCourse(e,index)}} placeholder="possibleClassRoms" required />*/}
-            {possibleClassRoomsMap}
-            <button onClick={() => { deleteCourse(index) }}>Delete</button>
+        <div>
+            <div>
+                <h1 className="display-1 text-center">Edu Calendar APP</h1>
+                <h3 className="text-center">Number of Classrooms</h3>
+                    <input className="form-control m-auto" style={{maxWidth:300}} type="number" defaultValue={0} onChange={onChangePossibleClassrooms} required></input>
+                <h2 className="text-center">Courses To Add</h2>
+                <div>
+                    {coursesMap}
+                </div>
+                <div className="text-center">
+                    <button className="btn btn-primary" onClick={addNewCourse}>Add new Course</button>
+                </div>
+                <div className="text-center mt-5">
+                    <button className="btn btn-primary" onClick={goMakeCalendar} disabled={possibleClassRoms <= 0 ? true : false} >Make Calendar</button>
+                    <button className="btn btn-primary" onClick={shuffleCoursesAndMakeCalendar} disabled={possibleClassRoms <= 0 ? true : false} >Try Random Combination</button>
+                </div>
+            </div>
+            <CoursesCalendar courses={courses} data={eventsData as FullCalendarEvent[]} initialDate={moment(firstDayStart).format("Y-MM-01")} />
         </div>
     );
-})
-return (
-    <div>
-        <div>
-            <h1 className="text-center">Edu Calendar APP</h1>
-            <h2>Courses To Add</h2>
-            <div>
-                {coursesMap}
-            </div>
-            <button onClick={addNewCourse}>Add new Course</button>
-            <div>
-                <h3>Number of Classrooms</h3>
-                <input type="number" onChange={onChangePossibleClassrooms} required></input>
-                <button onClick={goMakeCalendar} disabled={possibleClassRoms<=0 ? true : false} >Make Calendar</button>
-                <button onClick={shuffleCoursesAndMakeCalendar} disabled={possibleClassRoms<=0 ? true : false} >Try Random Combination</button>
-            </div>
-        </div>
-        <CoursesCalendar courses={courses} data={eventsData as FullCalendarEvent[]} initialDate={moment(firstDayStart).format("Y-MM-01")} />
-    </div>
-);
 }
