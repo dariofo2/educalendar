@@ -1,11 +1,11 @@
 import FullCalendar from "@fullcalendar/react";
 import DayGridPlugin from "@fullcalendar/daygrid";
-import multiMonthPlugin from "@fullcalendar/multimonth";
+//import multiMonthPlugin from "@fullcalendar/multimonth";
 import { useRef } from "react";
 import { Course } from "@/components/classes/courses/course";
-import CoursesByClassroom from "@/components/classes/coursesByClassroom.ts/CoursesByClassroom";
+//import CoursesByClassroom from "@/components/classes/coursesByClassroom.ts/CoursesByClassroom";
 import { FullCalendarEvent } from "@/components/classes/fullCalendar/event";
-import * as reactpdf from "react-pdf";
+//import * as reactpdf from "react-pdf";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 class Props {
@@ -85,7 +85,7 @@ export default function CoursesCalendar(props: Props) {
 
     const coursesInfoFinal = props.courses.map(x=>{
         return (
-            <div>
+            <div className="border border-3">
                 <h6>Name: {x.name}</h6>
                 <h6>Classroom: {x.classRoomUsed}</h6>
                 <h6>Dates: {x.dateStart} - {x.dateEnd}</h6>
@@ -100,7 +100,7 @@ export default function CoursesCalendar(props: Props) {
                 </div>
                 <FullCalendar ref={calendarRef}
                     plugins={[DayGridPlugin]}
-                    multiMonthMaxColumns={1}
+                    //multiMonthMaxColumns={1}
                     height="auto"
                     contentHeight={"auto"}
                     eventMaxStack={10}
